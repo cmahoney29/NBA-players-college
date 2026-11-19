@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBA College Pipeline</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #f97316;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 18px;
+    }
+    header h1 { font-size: 2rem; letter-spacing: -0.5px; }
+    header p { color: var(--muted); margin-top: 6px; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    input, select {
+      flex: 1 1 220px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: var(--card);
+      color: var(--text);
+      font-size: 1rem;
+    }
+    .stats-bar {
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(249, 115, 22, 0.15);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    .card h2 { font-size: 1.2rem; margin-bottom: 4px; }
+    .meta { color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>NBA College Pipeline</h1>
+      <p>Explore where the league's top stars played their college ball</p>
+    </header>
+
+    <div class="controls">
+      <input type="text" id="searchInput" placeholder="Search player or NBA team..." />
+      <select id="collegeFilter">
+        <option value="ALL">All Colleges</option>
+      </select>
+    </div>
+
+    <div class="stats-bar" id="statsBar"></div>
+    <div class="grid" id="playerGrid"></div>
+  </div>
+
+  <script>
+    const PLAYERS = [
+      { name: "Anthony Edwards", college: "Georgia", team: "Minnesota Timberwolves", draft: "2020 • Pick #1", pos: "SG" },
+      { name: "Jayson Tatum", college: "Duke", team: "Boston Celtics", draft: "2017 • Pick #3", pos: "SF" },
+      { name: "Shai Gilgeous-Alexander", college: "Kentucky", team: "Oklahoma City Thunder", draft: "2018 • Pick #11", pos: "PG" },
+      { name: "Stephen Curry", college: "Davidson", team: "Golden State Warriors", draft: "2009 • Pick #7", pos: "PG" },
+      { name: "Jalen Brunson", college: "Villanova", team: "New York Knicks", draft: "2018 • Pick #33", pos: "PG" },
+      { name: "Anthony Davis", college: "Kentucky", team: "Los Angeles Lakers", draft: "2012 • Pick #1", pos: "PF/C" },
+      { name: "Paolo Banchero", college: "Duke", team: "Orlando Magic", draft: "2022 • Pick #1", pos: "PF" },
+      { name: "Tyrese Haliburton", college: "Iowa State", team: "Indiana Pacers", draft: "2020 • Pick #12", pos: "PG" }
+    ];
+
+    const searchInput = document.getElementById("searchInput");
+    const collegeFilter = document.getElementById("collegeFilter");
+    const playerGrid = document.getElementById("playerGrid");
+    const statsBar = document.getElementById("statsBar");
+
+    // Populate college dropdown automatically from the player list
+    const colleges = [...new Set(PLAYERS.map(p => p.college))].sort();
+    colleges.forEach(college => {
+      const opt = document.createElement("option");
+      opt.value = college;
+      opt.textContent = college;
+      collegeFilter.appendChild(opt);
+    });
+
+    function render() {
+      const query = searchInput.value.toLowerCase().trim();
+      const selectedCollege = collegeFilter.value;
+
+      const filtered = PLAYERS.filter(p => {
+        const matchesCollege = selectedCollege === "ALL" || p.college === selectedCollege;
+        const matchesText =
+          p.name.toLowerCase().includes(query) ||
+          p.team.toLowerCase().includes(query) ||
+          p.college.toLowerCase().includes(query);
+        return matchesCollege && matchesText;
+      });
+
+      statsBar.textContent = `Showing ${filtered.length} of ${PLAYERS.length} players`;
+
+      playerGrid.innerHTML = filtered.map(p => `
+        <div class="card">
+          <span class="badge">${p.college}</span>
+          <h2>${p.name}</h2>
+          <div class="meta">${p.team} • ${p.pos}</div>
+          <div class="meta">Draft: ${p.draft}</div>
+        </div>
+      `).join("");
+    }
+
+    searchInput.addEventListener("input", render);
+    collegeFilter.addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>
