@@ -3,154 +3,408 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBA College Pipeline</title>
+  <title>NBA Players & College Index</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
+      --bg: #0b1120;
+      --surface: #131c31;
+      --surface-alt: #1b2640;
+      --border: #2a3958;
       --accent: #f97316;
-      --text: #f8fafc;
+      --accent-soft: rgba(249, 115, 22, 0.14);
+      --green: #10b981;
+      --text: #f1f5f9;
       --muted: #94a3b8;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
+      background-color: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding: 24px 16px;
+      padding: 24px 16px 48px;
     }
-    .container { max-width: 960px; margin: 0 auto; }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    /* Header */
     header {
       text-align: center;
-      margin-bottom: 28px;
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 18px;
+      padding-bottom: 20px;
+      margin-bottom: 22px;
+      border-bottom: 2px solid var(--border);
     }
-    header h1 { font-size: 2rem; letter-spacing: -0.5px; }
-    header p { color: var(--muted); margin-top: 6px; }
+
+    header h1 {
+      font-size: clamp(1.65rem, 3.5vw, 2.3rem);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    /* Main Mode Switcher Tabs */
+    .mode-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    /* Controls Bar */
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
-    input, select {
-      flex: 1 1 220px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background: var(--card);
+
+    .controls input,
+    .controls select {
+      flex: 1 1 200px;
+      background: var(--surface);
       color: var(--text);
-      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
     }
-    .stats-bar {
-      margin-bottom: 16px;
+
+    .controls input:focus,
+    .controls select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .action-btn {
+      background: var(--surface-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
       font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .action-btn:hover {
+      border-color: var(--accent);
+      background: #233152;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 0.88rem;
       color: var(--muted);
     }
+
+    .clear-filter-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 0.88rem;
+    }
+
+    /* Player Cards Grid */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
       gap: 16px;
     }
-    .card {
-      background: var(--card);
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 16px;
-      transition: transform 0.15s ease, border-color 0.15s ease;
+
+    .player-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 185px;
+      position: relative;
     }
-    .card:hover {
+
+    .player-card:hover,
+    .player-card:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      outline: none;
+    }
+
+    .player-card.revealed {
+      border-color: var(--green);
+      background: linear-gradient(180deg, var(--surface) 0%, #11232d 100%);
+    }
+
+    .player-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pos-pill {
+      background: var(--surface-alt);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .player-name {
+      font-size: 1.22rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .nba-team {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 14px;
+    }
+
+    /* Hidden Prompt vs. Revealed College Box */
+    .reveal-prompt {
+      margin-top: auto;
+      background: var(--accent-soft);
+      border: 1px dashed var(--accent);
+      color: var(--accent);
+      text-align: center;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .college-reveal {
+      margin-top: auto;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 10px;
+      padding: 12px;
+      animation: fadeIn 0.22s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .college-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .college-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #34d399;
+    }
+
+    .conf-badge {
+      font-size: 0.74rem;
+      background: rgba(16, 185, 129, 0.18);
+      color: #6ee7b7;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .college-meta {
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .college-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* Overall College Index Grid */
+    .college-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+    }
+
+    .college-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .college-card:hover {
       transform: translateY(-3px);
       border-color: var(--accent);
     }
-    .badge {
-      display: inline-block;
-      background: rgba(249, 115, 22, 0.15);
+
+    .college-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .college-card h3 {
+      font-size: 1.18rem;
+      color: var(--text);
+    }
+
+    .count-pill {
+      background: var(--accent-soft);
       color: var(--accent);
       font-weight: 700;
-      font-size: 0.8rem;
-      padding: 3px 10px;
+      font-size: 0.82rem;
+      padding: 4px 10px;
       border-radius: 999px;
-      margin-bottom: 8px;
+      white-space: nowrap;
     }
-    .card h2 { font-size: 1.2rem; margin-bottom: 4px; }
-    .meta { color: var(--muted); font-size: 0.9rem; }
+
+    .alumni-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .alumni-chip {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+      font-size: 0.8rem;
+      padding: 3px 9px;
+      border-radius: 6px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>NBA College Pipeline</h1>
-      <p>Explore where the league's top stars played their college ball</p>
+      <h1>NBA Players & College Index</h1>
+      <p>Click any player card to reveal their alma mater, or browse the complete index of colleges</p>
     </header>
 
-    <div class="controls">
-      <input type="text" id="searchInput" placeholder="Search player or NBA team..." />
-      <select id="collegeFilter">
-        <option value="ALL">All Colleges</option>
-      </select>
+    <!-- View Switcher -->
+    <div class="mode-tabs" role="tablist">
+      <button class="tab-btn active" id="tabPlayers" role="tab" aria-selected="true">
+        Players Directory
+      </button>
+      <button class="tab-btn" id="tabColleges" role="tab" aria-selected="false">
+        Overall College Index (<span id="totalCollegesBadge">0</span>)
+      </button>
     </div>
 
-    <div class="stats-bar" id="statsBar"></div>
-    <div class="grid" id="playerGrid"></div>
+    <!-- PLAYERS VIEW -->
+    <section id="playersView">
+      <div class="controls">
+        <input type="text" id="playerSearch" placeholder="Search player, NBA team, or college..." />
+        <select id="collegeSelect">
+          <option value="ALL">All Colleges</option>
+        </select>
+        <button type="button" class="action-btn" id="toggleAllBtn">Reveal All Colleges</button>
+      </div>
+
+      <div class="status-bar">
+        <span id="playerStatus">Showing 0 players</span>
+        <button type="button" class="clear-filter-btn hidden" id="clearCollegeFilter">
+          Clear college filter
+        </button>
+      </div>
+
+      <div class="grid" id="playerGrid"></div>
+    </section>
+
+    <!-- OVERALL COLLEGE INDEX VIEW -->
+    <section id="collegesView" class="hidden">
+      <div class="controls">
+        <input type="text" id="collegeSearch" placeholder="Filter colleges or conferences (e.g., ACC, SEC, Duke)..." />
+        <select id="collegeSort">
+          <option value="COUNT">Sort: Most NBA Players</option>
+          <option value="ALPHA">Sort: Alphabetical (A–Z)</option>
+        </select>
+      </div>
+
+      <div class="status-bar">
+        <span id="collegeStatus">Showing 0 colleges</span>
+      </div>
+
+      <div class="college-grid" id="collegeGrid"></div>
+    </section>
   </div>
 
   <script>
+    // Add or edit players here — both the Player Directory and College Index update automatically!
     const PLAYERS = [
-      { name: "Anthony Edwards", college: "Georgia", team: "Minnesota Timberwolves", draft: "2020 • Pick #1", pos: "SG" },
-      { name: "Jayson Tatum", college: "Duke", team: "Boston Celtics", draft: "2017 • Pick #3", pos: "SF" },
-      { name: "Shai Gilgeous-Alexander", college: "Kentucky", team: "Oklahoma City Thunder", draft: "2018 • Pick #11", pos: "PG" },
-      { name: "Stephen Curry", college: "Davidson", team: "Golden State Warriors", draft: "2009 • Pick #7", pos: "PG" },
-      { name: "Jalen Brunson", college: "Villanova", team: "New York Knicks", draft: "2018 • Pick #33", pos: "PG" },
-      { name: "Anthony Davis", college: "Kentucky", team: "Los Angeles Lakers", draft: "2012 • Pick #1", pos: "PF/C" },
-      { name: "Paolo Banchero", college: "Duke", team: "Orlando Magic", draft: "2022 • Pick #1", pos: "PF" },
-      { name: "Tyrese Haliburton", college: "Iowa State", team: "Indiana Pacers", draft: "2020 • Pick #12", pos: "PG" }
-    ];
-
-    const searchInput = document.getElementById("searchInput");
-    const collegeFilter = document.getElementById("collegeFilter");
-    const playerGrid = document.getElementById("playerGrid");
-    const statsBar = document.getElementById("statsBar");
-
-    // Populate college dropdown automatically from the player list
-    const colleges = [...new Set(PLAYERS.map(p => p.college))].sort();
-    colleges.forEach(college => {
-      const opt = document.createElement("option");
-      opt.value = college;
-      opt.textContent = college;
-      collegeFilter.appendChild(opt);
-    });
-
-    function render() {
-      const query = searchInput.value.toLowerCase().trim();
-      const selectedCollege = collegeFilter.value;
-
-      const filtered = PLAYERS.filter(p => {
-        const matchesCollege = selectedCollege === "ALL" || p.college === selectedCollege;
-        const matchesText =
-          p.name.toLowerCase().includes(query) ||
-          p.team.toLowerCase().includes(query) ||
-          p.college.toLowerCase().includes(query);
-        return matchesCollege && matchesText;
-      });
-
-      statsBar.textContent = `Showing ${filtered.length} of ${PLAYERS.length} players`;
-
-      playerGrid.innerHTML = filtered.map(p => `
-        <div class="card">
-          <span class="badge">${p.college}</span>
-          <h2>${p.name}</h2>
-          <div class="meta">${p.team} • ${p.pos}</div>
-          <div class="meta">Draft: ${p.draft}</div>
-        </div>
-      `).join("");
-    }
-
-    searchInput.addEventListener("input", render);
-    collegeFilter.addEventListener("change", render);
-    render();
-  </script>
-</body>
-</html>
+      { id: 1, name: "Stephen Curry", pos: "PG", team: "Golden State Warriors", college: "Davidson", conference: "Southern / A-10", years: "2006–2009", draft: "2009 • Pick #7", note: "Led Davidson to a memorable 2008 Elite Eight run." },
+      { id: 2, name: "Jayson Tatum", pos: "SF", team: "Boston Celtics", college: "Duke", conference: "ACC", years: "2016–2017", draft: "2017 • Pick #3", note: "Averaged 16.8 PPG in his lone season under Coach K." },
+      { id: 3, name: "Kyrie Irving", pos: "PG", team: "Dallas Mavericks", college: "Duke", conference: "ACC", years: "2010–2011", draft: "2011 • Pick #1", note: "Selected #1 overall despite playing 11 injury-limited games." },
+      { id: 4, name: "Paolo Banchero", pos: "PF", team: "Orlando Magic", college: "Duke", conference: "ACC", years: "2021–2022", draft: "2022 • Pick #1", note: "Named ACC Rookie of the Year and reached the 2022 Final Four." },
+      { id: 5, name: "Shai Gilgeous-Alexander", pos: "PG", team: "Oklahoma City Thunder", college: "Kentucky", conference: "SEC", years: "2
