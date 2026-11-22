@@ -1,0 +1,64 @@
+name: Build All-Time NBA Players JSON
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          python - << 'EOF'
+          import json, urllib.request
+          from concurrent.futures import ThreadPoolExecutor
+
+          base = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba/athletes?limit=1000"
+          first = json.loads(urllib.request.urlopen(base).read())
+          pages = first.get("pageCount", 1)
+
+          refs = [item["$ref"] for item in first.get("items", [])]
+          for p in range(2, pages + 1):
+              page_data = json.loads(urllib.request.urlopen(f"{base}&page={p}").read())
+              refs.extend(item["$ref"] for item in page_data.get("items", []))
+
+          def fetch_player(url):
+              try:
+                  d = json.loads(urllib.request.urlopen(url.replace("http://", "https://"), timeout=10).read())
+                  college = ""
+                  if isinstance(d.get("college"), dict):
+                      c_ref = d["college"].get("$ref")
+                      if c_ref:
+                          c_data = json.loads(urllib.request.urlopen(c_ref.replace("http://", "https://"), timeout=10).read())
+                          college = c_data.get("name", "")
+                  country = d.get("birthPlace", {}).get("country", "")
+                  if not college:
+                      college = f"None ({country})" if country and country != "USA" else "None / Pre-NBA"
+                  return {
+                      "name": d.get("fullName", "Unknown"),
+                      "college": college,
+                      "pos": d.get("position", {}).get("abbreviation", "—"),
+                      "team": "Active" if d.get("active") else "Retired / Historical",
+                      "draftYear": d.get("draft", {}).get("year")
+                  }
+              except Exception:
+                  return None
+
+          with ThreadPoolExecutor(max_workers=25) as ex:
+              results = [r for r in ex.map(fetch_player, refs) if r]
+
+          with open("players.json", "w", encoding="utf-8") as f:
+              json.dump(results, f)
+          print(f"Wrote {len(results)} players")
+          EOF
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add players.json
+          git commit -m "Populate all-time NBA players.json"
+          git push
