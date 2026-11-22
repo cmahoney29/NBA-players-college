@@ -3,408 +3,326 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NBA Players & College Index</title>
+  <title>NBA Players by College</title>
   <style>
     :root {
-      --bg: #0b1120;
-      --surface: #131c31;
-      --surface-alt: #1b2640;
-      --border: #2a3958;
-      --accent: #f97316;
-      --accent-soft: rgba(249, 115, 22, 0.14);
-      --green: #10b981;
-      --text: #f1f5f9;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-hover: #334155;
+      --border: #334155;
+      --text: #f8fafc;
       --muted: #94a3b8;
+      --accent: #38bdf8;
+      --badge: #0284c7;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding: 24px 16px 48px;
+      padding: 2rem 1rem;
     }
-
-    .container {
-      max-width: 1040px;
-      margin: 0 auto;
+    .container { max-width: 1100px; margin: 0 auto; }
+    header { margin-bottom: 1.75rem; }
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+    .subtitle { color: var(--muted); margin-top: 0.25rem; }
+    .stats-bar {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.25rem 0;
     }
-
-    /* Header */
-    header {
-      text-align: center;
-      padding-bottom: 20px;
-      margin-bottom: 22px;
-      border-bottom: 2px solid var(--border);
-    }
-
-    header h1 {
-      font-size: clamp(1.65rem, 3.5vw, 2.3rem);
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
-    }
-
-    header p {
-      color: var(--muted);
-      font-size: 0.98rem;
-    }
-
-    /* Main Mode Switcher Tabs */
-    .mode-tabs {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 22px;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
+    .chip {
       background: var(--surface);
-      color: var(--muted);
       border: 1px solid var(--border);
-      padding: 10px 20px;
-      border-radius: 999px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.16s ease;
-    }
-
-    .tab-btn:hover {
       color: var(--text);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .chip:hover, .chip.active {
+      background: var(--badge);
       border-color: var(--accent);
     }
-
-    .tab-btn.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-    }
-
-    /* Controls Bar */
     .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 14px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
     }
-
-    .controls input,
-    .controls select {
-      flex: 1 1 200px;
+    @media (max-width: 720px) {
+      .controls { grid-template-columns: 1fr; }
+    }
+    input, select {
       background: var(--surface);
-      color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
+      color: var(--text);
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
       font-size: 0.95rem;
+      width: 100%;
     }
-
-    .controls input:focus,
-    .controls select:focus {
-      outline: none;
-      border-color: var(--accent);
+    input:focus, select:focus {
+      outline: 2px solid var(--accent);
+      border-color: transparent;
     }
-
-    .action-btn {
-      background: var(--surface-alt);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: border-color 0.15s ease, background 0.15s ease;
-    }
-
-    .action-btn:hover {
-      border-color: var(--accent);
-      background: #233152;
-    }
-
-    .status-bar {
+    .meta-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-      font-size: 0.88rem;
-      color: var(--muted);
-    }
-
-    .clear-filter-btn {
-      background: transparent;
-      border: none;
-      color: var(--accent);
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: underline;
-      font-size: 0.88rem;
-    }
-
-    /* Player Cards Grid */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
-      gap: 16px;
-    }
-
-    .player-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      cursor: pointer;
-      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 185px;
-      position: relative;
-    }
-
-    .player-card:hover,
-    .player-card:focus-visible {
-      transform: translateY(-3px);
-      border-color: var(--accent);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-      outline: none;
-    }
-
-    .player-card.revealed {
-      border-color: var(--green);
-      background: linear-gradient(180deg, var(--surface) 0%, #11232d 100%);
-    }
-
-    .player-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .pos-pill {
-      background: var(--surface-alt);
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-
-    .player-name {
-      font-size: 1.22rem;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-
-    .nba-team {
       color: var(--muted);
       font-size: 0.9rem;
-      margin-bottom: 14px;
+      margin-bottom: 0.75rem;
     }
-
-    /* Hidden Prompt vs. Revealed College Box */
-    .reveal-prompt {
-      margin-top: auto;
-      background: var(--accent-soft);
-      border: 1px dashed var(--accent);
-      color: var(--accent);
-      text-align: center;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      font-weight: 600;
-    }
-
-    .college-reveal {
-      margin-top: auto;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      border-radius: 10px;
-      padding: 12px;
-      animation: fadeIn 0.22s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .college-title-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .college-name {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #34d399;
-    }
-
-    .conf-badge {
-      font-size: 0.74rem;
-      background: rgba(16, 185, 129, 0.18);
-      color: #6ee7b7;
-      padding: 2px 7px;
-      border-radius: 999px;
-      font-weight: 600;
-    }
-
-    .college-meta {
-      font-size: 0.83rem;
-      color: #cbd5e1;
-      margin-bottom: 6px;
-    }
-
-    .college-note {
-      font-size: 0.82rem;
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    /* Overall College Index Grid */
-    .college-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap: 16px;
-    }
-
-    .college-card {
+    .table-wrap {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 18px;
-      cursor: pointer;
-      transition: transform 0.16s ease, border-color 0.16s ease;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      border-radius: 12px;
+      overflow-x: auto;
     }
-
-    .college-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--accent);
-    }
-
-    .college-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .college-card h3 {
-      font-size: 1.18rem;
-      color: var(--text);
-    }
-
-    .count-pill {
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 0.82rem;
-      padding: 4px 10px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-
-    .alumni-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .alumni-chip {
-      background: var(--surface-alt);
-      border: 1px solid var(--border);
-      color: #e2e8f0;
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); }
+    th {
       font-size: 0.8rem;
-      padding: 3px 9px;
-      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
     }
-
-    .hidden {
-      display: none !important;
+    th:hover { color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+    .college-pill {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+    .empty {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--muted);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>NBA Players & College Index</h1>
-      <p>Click any player card to reveal their alma mater, or browse the complete index of colleges</p>
+      <h1>NBA Players & Colleges Index</h1>
+      <p class="subtitle">Search and filter NBA players by alma mater, team, position, or draft class.</p>
+      <div class="stats-bar" id="topColleges"></div>
     </header>
 
-    <!-- View Switcher -->
-    <div class="mode-tabs" role="tablist">
-      <button class="tab-btn active" id="tabPlayers" role="tab" aria-selected="true">
-        Players Directory
-      </button>
-      <button class="tab-btn" id="tabColleges" role="tab" aria-selected="false">
-        Overall College Index (<span id="totalCollegesBadge">0</span>)
-      </button>
+    <div class="controls">
+      <input type="search" id="searchInput" placeholder="Search player, college, or team..." />
+      <select id="collegeFilter">
+        <option value="">All Colleges / Pre-NBA Paths</option>
+      </select>
+      <select id="posFilter">
+        <option value="">All Positions</option>
+        <option value="G">Guard (G)</option>
+        <option value="F">Forward (F)</option>
+        <option value="C">Center (C)</option>
+      </select>
     </div>
 
-    <!-- PLAYERS VIEW -->
-    <section id="playersView">
-      <div class="controls">
-        <input type="text" id="playerSearch" placeholder="Search player, NBA team, or college..." />
-        <select id="collegeSelect">
-          <option value="ALL">All Colleges</option>
-        </select>
-        <button type="button" class="action-btn" id="toggleAllBtn">Reveal All Colleges</button>
-      </div>
+    <div class="meta-row">
+      <span id="resultCount">Loading players...</span>
+      <span id="dataSource">Built-in dataset</span>
+    </div>
 
-      <div class="status-bar">
-        <span id="playerStatus">Showing 0 players</span>
-        <button type="button" class="clear-filter-btn hidden" id="clearCollegeFilter">
-          Clear college filter
-        </button>
-      </div>
-
-      <div class="grid" id="playerGrid"></div>
-    </section>
-
-    <!-- OVERALL COLLEGE INDEX VIEW -->
-    <section id="collegesView" class="hidden">
-      <div class="controls">
-        <input type="text" id="collegeSearch" placeholder="Filter colleges or conferences (e.g., ACC, SEC, Duke)..." />
-        <select id="collegeSort">
-          <option value="COUNT">Sort: Most NBA Players</option>
-          <option value="ALPHA">Sort: Alphabetical (A–Z)</option>
-        </select>
-      </div>
-
-      <div class="status-bar">
-        <span id="collegeStatus">Showing 0 colleges</span>
-      </div>
-
-      <div class="college-grid" id="collegeGrid"></div>
-    </section>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="name">Player</th>
+            <th data-sort="college">College / Pre-NBA</th>
+            <th data-sort="pos">Pos</th>
+            <th data-sort="team">Team</th>
+            <th data-sort="draftYear">Draft</th>
+          </tr>
+        </thead>
+        <tbody id="playerTable"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
-    // Add or edit players here — both the Player Directory and College Index update automatically!
-    const PLAYERS = [
-      { id: 1, name: "Stephen Curry", pos: "PG", team: "Golden State Warriors", college: "Davidson", conference: "Southern / A-10", years: "2006–2009", draft: "2009 • Pick #7", note: "Led Davidson to a memorable 2008 Elite Eight run." },
-      { id: 2, name: "Jayson Tatum", pos: "SF", team: "Boston Celtics", college: "Duke", conference: "ACC", years: "2016–2017", draft: "2017 • Pick #3", note: "Averaged 16.8 PPG in his lone season under Coach K." },
-      { id: 3, name: "Kyrie Irving", pos: "PG", team: "Dallas Mavericks", college: "Duke", conference: "ACC", years: "2010–2011", draft: "2011 • Pick #1", note: "Selected #1 overall despite playing 11 injury-limited games." },
-      { id: 4, name: "Paolo Banchero", pos: "PF", team: "Orlando Magic", college: "Duke", conference: "ACC", years: "2021–2022", draft: "2022 • Pick #1", note: "Named ACC Rookie of the Year and reached the 2022 Final Four." },
-      { id: 5, name: "Shai Gilgeous-Alexander", pos: "PG", team: "Oklahoma City Thunder", college: "Kentucky", conference: "SEC", years: "2
+    const BUILTIN_PLAYERS = [
+      { name: "Cooper Flagg", college: "Duke", pos: "F", team: "Dallas Mavericks", draftYear: 2025 },
+      { name: "AJ Dybantsa", college: "BYU", pos: "F", team: "Washington Wizards", draftYear: 2026 },
+      { name: "Dylan Harper", college: "Rutgers", pos: "G", team: "San Antonio Spurs", draftYear: 2025 },
+      { name: "Darryn Peterson", college: "Kansas", pos: "G", team: "Utah Jazz", draftYear: 2026 },
+      { name: "VJ Edgecombe", college: "Baylor", pos: "G", team: "Philadelphia 76ers", draftYear: 2025 },
+      { name: "Cameron Boozer", college: "Duke", pos: "F", team: "Memphis Grizzlies", draftYear: 2026 },
+      { name: "Kon Knueppel", college: "Duke", pos: "F", team: "Charlotte Hornets", draftYear: 2025 },
+      { name: "Ace Bailey", college: "Rutgers", pos: "F", team: "Utah Jazz", draftYear: 2025 },
+      { name: "Caleb Wilson", college: "North Carolina", pos: "F", team: "Chicago Bulls", draftYear: 2026 },
+      { name: "Stephen Curry", college: "Davidson", pos: "G", team: "Golden State Warriors", draftYear: 2009 },
+      { name: "LeBron James", college: "None (High School)", pos: "F", team: "Los Angeles Lakers", draftYear: 2003 },
+      { name: "Kevin Durant", college: "Texas", pos: "F", team: "Phoenix Suns", draftYear: 2007 },
+      { name: "Jayson Tatum", college: "Duke", pos: "F", team: "Boston Celtics", draftYear: 2017 },
+      { name: "Jaylen Brown", college: "California", pos: "G-F", team: "Boston Celtics", draftYear: 2016 },
+      { name: "Anthony Edwards", college: "Georgia", pos: "G", team: "Minnesota Timberwolves", draftYear: 2020 },
+      { name: "Shai Gilgeous-Alexander", college: "Kentucky", pos: "G", team: "Oklahoma City Thunder", draftYear: 2018 },
+      { name: "Jalen Brunson", college: "Villanova", pos: "G", team: "New York Knicks", draftYear: 2018 },
+      { name: "Tyrese Haliburton", college: "Iowa State", pos: "G", team: "Indiana Pacers", draftYear: 2020 },
+      { name: "Donovan Mitchell", college: "Louisville", pos: "G", team: "Cleveland Cavaliers", draftYear: 2017 },
+      { name: "Devin Booker", college: "Kentucky", pos: "G", team: "Phoenix Suns", draftYear: 2015 },
+      { name: "Anthony Davis", college: "Kentucky", pos: "F-C", team: "Los Angeles Lakers", draftYear: 2012 },
+      { name: "Bam Adebayo", college: "Kentucky", pos: "C-F", team: "Miami Heat", draftYear: 2017 },
+      { name: "Karl-Anthony Towns", college: "Kentucky", pos: "C-F", team: "New York Knicks", draftYear: 2015 },
+      { name: "Tyrese Maxey", college: "Kentucky", pos: "G", team: "Philadelphia 76ers", draftYear: 2020 },
+      { name: "De'Aaron Fox", college: "Kentucky", pos: "G", team: "Sacramento Kings", draftYear: 2017 },
+      { name: "Jamal Murray", college: "Kentucky", pos: "G", team: "Denver Nuggets", draftYear: 2016 },
+      { name: "Kyrie Irving", college: "Duke", pos: "G", team: "Dallas Mavericks", draftYear: 2011 },
+      { name: "Paolo Banchero", college: "Duke", pos: "F", team: "Orlando Magic", draftYear: 2022 },
+      { name: "Zion Williamson", college: "Duke", pos: "F", team: "New Orleans Pelicans", draftYear: 2019 },
+      { name: "Brandon Ingram", college: "Duke", pos: "F", team: "New Orleans Pelicans", draftYear: 2016 },
+      { name: "Cade Cunningham", college: "Oklahoma State", pos: "G", team: "Detroit Pistons", draftYear: 2021 },
+      { name: "Evan Mobley", college: "USC", pos: "F-C", team: "Cleveland Cavaliers", draftYear: 2021 },
+      { name: "Scottie Barnes", college: "Florida State", pos: "F", team: "Toronto Raptors", draftYear: 2021 },
+      { name: "Ja Morant", college: "Murray State", pos: "G", team: "Memphis Grizzlies", draftYear: 2019 },
+      { name: "Trae Young", college: "Oklahoma", pos: "G", team: "Atlanta Hawks", draftYear: 2018 },
+      { name: "Damian Lillard", college: "Weber State", pos: "G", team: "Milwaukee Bucks", draftYear: 2012 },
+      { name: "Kawhi Leonard", college: "San Diego State", pos: "F", team: "LA Clippers", draftYear: 2011 },
+      { name: "James Harden", college: "Arizona State", pos: "G", team: "LA Clippers", draftYear: 2009 },
+      { name: "Jimmy Butler", college: "Marquette", pos: "F", team: "Miami Heat", draftYear: 2011 },
+      { name: "Joel Embiid", college: "Kansas", pos: "C", team: "Philadelphia 76ers", draftYear: 2014 },
+      { name: "Nikola Jokić", college: "None (International)", pos: "C", team: "Denver Nuggets", draftYear: 2014 },
+      { name: "Luka Dončić", college: "None (International)", pos: "G-F", team: "Dallas Mavericks", draftYear: 2018 },
+      { name: "Giannis Antetokounmpo", college: "None (International)", pos: "F", team: "Milwaukee Bucks", draftYear: 2013 },
+      { name: "Victor Wembanyama", college: "None (International)", pos: "C-F", team: "San Antonio Spurs", draftYear: 2023 },
+      { name: "Michael Jordan", college: "North Carolina", pos: "G", team: "Chicago Bulls (Legend)", draftYear: 1984 },
+      { name: "Kobe Bryant", college: "None (High School)", pos: "G", team: "Los Angeles Lakers (Legend)", draftYear: 1996 },
+      { name: "Tim Duncan", college: "Wake Forest", pos: "F-C", team: "San Antonio Spurs (Legend)", draftYear: 1997 },
+      { name: "Shaquille O'Neal", college: "LSU", pos: "C", team: "Orlando Magic (Legend)", draftYear: 1992 },
+      { name: "Magic Johnson", college: "Michigan State", pos: "G", team: "Los Angeles Lakers (Legend)", draftYear: 1979 },
+      { name: "Larry Bird", college: "Indiana State", pos: "F", team: "Boston Celtics (Legend)", draftYear: 1978 },
+      { name: "Kareem Abdul-Jabbar", college: "UCLA", pos: "C", team: "Milwaukee Bucks (Legend)", draftYear: 1969 }
+    ];
+
+    let players = [...BUILTIN_PLAYERS];
+    let sortKey = "name";
+    let sortAsc = true;
+
+    const searchInput = document.getElementById("searchInput");
+    const collegeFilter = document.getElementById("collegeFilter");
+    const posFilter = document.getElementById("posFilter");
+    const tableBody = document.getElementById("playerTable");
+    const resultCount = document.getElementById("resultCount");
+    const topCollegesEl = document.getElementById("topColleges");
+    const dataSourceEl = document.getElementById("dataSource");
+
+    function populateFilters() {
+      const counts = {};
+      players.forEach(p => {
+        counts[p.college] = (counts[p.college] || 0) + 1;
+      });
+
+      const sortedColleges = Object.keys(counts).sort();
+      collegeFilter.innerHTML = `<option value="">All Colleges / Pre-NBA Paths (${sortedColleges.length})</option>`;
+      sortedColleges.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = `${c} (${counts[c]})`;
+        collegeFilter.appendChild(opt);
+      });
+
+      const top5 = Object.entries(counts)
+        .filter(([name]) => !name.startsWith("None"))
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+
+      topCollegesEl.innerHTML = `<button class="chip active" data-college="">All (${players.length})</button>` +
+        top5.map(([c, n]) => `<button class="chip" data-college="${c}">${c} (${n})</button>`).join("");
+
+      topCollegesEl.querySelectorAll(".chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+          collegeFilter.value = btn.dataset.college;
+          render();
+        });
+      });
+    }
+
+    function render() {
+      const q = searchInput.value.trim().toLowerCase();
+      const col = collegeFilter.value;
+      const pos = posFilter.value;
+
+      topCollegesEl.querySelectorAll(".chip").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.college === col);
+      });
+
+      const filtered = players
+        .filter(p => {
+          const matchesQ = !q ||
+            p.name.toLowerCase().includes(q) ||
+            p.college.toLowerCase().includes(q) ||
+            p.team.toLowerCase().includes(q);
+          const matchesCol = !col || p.college === col;
+          const matchesPos = !pos || p.pos.includes(pos);
+          return matchesQ && matchesCol && matchesPos;
+        })
+        .sort((a, b) => {
+          const valA = a[sortKey];
+          const valB = b[sortKey];
+          if (typeof valA === "number" && typeof valB === "number") {
+            return sortAsc ? valA - valB : valB - valA;
+          }
+          return sortAsc
+            ? String(valA).localeCompare(String(valB))
+            : String(valB).localeCompare(String(valA));
+        });
+
+      resultCount.textContent = `Showing ${filtered.length} of ${players.length} players`;
+
+      if (!filtered.length) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty">No players match your filter.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = filtered.map(p => `
+        <tr>
+          <td><strong>${p.name}</strong></td>
+          <td><span class="college-pill">${p.college}</span></td>
+          <td>${p.pos}</td>
+          <td>${p.team}</td>
+          <td>${p.draftYear || "Undrafted"}</td>
+        </tr>
+      `).join("");
+    }
+
+    document.querySelectorAll("th[data-sort]").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        if (sortKey === key) sortAsc = !sortAsc;
+        else { sortKey = key; sortAsc = true; }
+        render();
+      });
+    });
+
+    [searchInput, collegeFilter, posFilter].forEach(el => el.addEventListener("input", render));
+
+    // Automatically load external players.json if added to the repository
+    fetch("./players.json")
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          players = data;
+          dataSourceEl.textContent = `Loaded from players.json (${players.length} players)`;
+          populateFilters();
+          render();
+        }
+      })
+      .catch(() => {});
+
+    populateFilters();
+    render();
+  </script>
+</body>
+</html>
